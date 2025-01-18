@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@astrojs/tailwind": "^5.1.4",
+    "@picocss/pico": "^2.0.6",
     "astro": "^5.1.7",
     "excel-data": "file:",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "read-excel-file": "^5.8.6"
   }
 }
