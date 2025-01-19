@@ -21,7 +21,7 @@
                 <input type="submit" value="Load file" class="button-load" />
               </fieldset></strong
             >
-            <small> Only can submit ',xlsx' or '.xls' files </small>
+            <small> Only can submit '.xlsx' or '.xls' files </small>
           </label>
         </form>
         
@@ -41,13 +41,15 @@
         >
       </section>
     </section>
-    <section class="content-data">
+    <section class="">
       <article>
         <span id="loading" aria-busy="true" style="display: none;"
           >Loading data...</span
         >
         <pre
           id="output">
+          <h4 class="center-content">DATA WILL BE RENDER HERE</h4>
+          <h5 class="center-content">The table data will be dynamically rendered here</h5>
         <!-- <details>
           <summary>Accordion 1</summary>            
         </details>          
@@ -92,7 +94,7 @@
       border: 1px solid #0172ad;
     }
 
-    .content-data {
+    .table-data {
       overflow-y: scroll;
       height: 100vh;
     }
@@ -115,10 +117,10 @@ import readXlsxFile, { readSheetNames } from "read-excel-file";
 */
       let output = "";
       for (const element of allSheets) {
-        output += `<details>
+        output += `<details class="table-data">
                     <summary>${element.sheetName}</summary>`;
-        output +=  `<table>
-                      <thead>
+        output +=  `<table >
+                      <thead data-theme="light">
                          <tr>`
                         element.rows[0].forEach((elem:string) => {
                           output+= `<th scope="col">${elem===null?` `:elem}</th>`
