@@ -1,72 +1,221 @@
 ---
-
+//SSR
 ---
 
 <div id="container">
+  <header><h1 class="center-content">Excel Data Reader</h1></header>
   <main class="container">
-    <section id="hero">
-      <h1 class="center-content">Excel Data Reader</h1>
-      <form id="form-excel-data-reader">
-        <fieldset>
+    <section class="container-info">
+      <section id="hero">
+        <form id="form-excel-data-reader">
           <label for="file-data"
-            >Choose a file<input
-              type="file"
-              id="file-data"
-              accept=".xlsx,.xls,.odf"
-              required
-            />
-            <small id="email-helper">
-              Only can submit ',xlsx' or '.xls' files
-            </small>
+            ><strong
+              >Search<fieldset role="group">
+                <input
+                  type="file"
+                  id="file-data"
+                  accept=".xlsx,.xls,.ods"
+                  required
+                />
+
+                <input type="submit" value="Load file" class="button-load" />
+              </fieldset></strong
+            >
+            <small> Only can submit ',xlsx' or '.xls' files </small>
           </label>
-          <input type="submit" value="Load data" />
-        </fieldset>
-      </form>
+        </form>
+        
+      </section>
+      <section>
+        <label for="output-name"
+          >File name: <ins id="output-name"></ins></label
+        >
+        <label for="output-modified-date"
+          >Last modified date: <ins id="output-modified-date"></ins></label
+        >
+        <label for="output-size"
+          >File size: <ins id="output-size"></ins></label
+        >
+        <label for="output-sheets"
+          >Sheets: <ins id="output-sheets"></ins></label
+        >
+      </section>
     </section>
-    <section>
+    <section class="content-data">
       <article>
-        <span aria-busy="true">Loading data...</span>
+        <span id="loading" aria-busy="true" style="display: none;"
+          >Loading data...</span
+        >
+        <pre
+          id="output">
+        <!-- <details>
+          <summary>Accordion 1</summary>            
+        </details>          
+        <details>
+          <summary>Accordion 2</summary>            
+        </details> -->
+      </pre>
       </article>
     </section>
+    <footer></footer>
   </main>
-</div>
 
-<style>
-  .center-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-</style>
-
-<script>
-  import readXlsxFile, { readSheetNames } from "read-excel-file";
-
-  const $buttonSubmit = document.getElementById("form-excel-data-reader");
-  const $fileInput = document.getElementById(
-    "file-data"
-  ) as HTMLInputElement | null;
-
-  $buttonSubmit?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if ($fileInput && $fileInput.files && $fileInput.files.length > 0) {
-      const file = $fileInput.files[0];
-      // Aquí puedes trabajar con el archivo seleccionado
-
-      const allSheets: any[][] = [];
-      const sheetsName = await readSheetNames(file);
-      for (const sheetName of sheetsName) {
-        const rows = await readXlsxFile(file, { sheet: sheetName });
-        allSheets.push({ sheetName, rows });
-      }
-      console.log(allSheets);
-      console.log(file);
-      console.log(sheetsName);
-    } else {
-      console.error(
-        "No se ha seleccionado ningún archivo o el elemento no existe."
-      );
+  <style>
+    :root {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      vertical-align: baseline;
     }
-  });
-</script>
+    .container {
+      display: flex;
+      flex-direction: column;
+    }
+    .button-load {
+      width: 33.33%;
+    }
+    .center-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .container-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+    }
+
+    fieldset {
+      border: 1px solid #0172ad;
+    }
+
+    .content-data {
+      overflow-y: scroll;
+      height: 100vh;
+    }
+  </style>
+
+  <script>
+    import type { string } from "astro:schema";
+import readXlsxFile, { readSheetNames } from "read-excel-file";
+
+    function returnOutput(allSheets: {}[]) {
+      console.log(allSheets)
+      /* OUTPUT 
+    {sheetName: 'Paises', rows: Array(4)}
+      rows: Array(4)
+      0:(5) ['Nro', 'Pais', 'Continente', 'Habitantes', 'Idioma']
+      1:(5) [1, 'Cuba', 'America', 11000000, 'Español']
+      2:(5) [2, 'EEUU', 'America', 800000000000, 'Ingles']
+      3:(5) [3, 'España', 'Europa', 254800000000, 'Español']
+    length:4 
+*/
+      let output = "";
+      for (const element of allSheets) {
+        output += `<details>
+                    <summary>${element.sheetName}</summary>`;
+        output +=  `<table>
+                      <thead>
+                         <tr>`
+                        element.rows[0].forEach((elem:string) => {
+                          output+= `<th scope="col">${elem===null?` `:elem}</th>`
+                        });
+              output+=`  </tr>
+                      </thead>`
+               output+= `<tbody>`
+                element.rows.slice(1).forEach((row:[]) => {
+                  output += "<tr>";
+                  row.forEach((cell, index) => {
+                    // Agregar `scope="row"` a la primera celda de cada fila
+                    if (index === 0) {
+                      output += `<th scope="row">${cell===null?` `:cell}</th>`;
+                    } else {
+                      output += `<td>${cell===null?` `:cell}</td>`;
+                    }
+                  });
+                  output += "</tr>";
+                });
+        output += '</tbody></table></details>'
+      }
+      return output;
+    }
+
+    const $formSubmit = document.getElementById("form-excel-data-reader");
+    const $fileInput = document.getElementById(
+      "file-data"
+    ) as HTMLInputElement | null;
+    const loadingElement = document.getElementById("loading");
+    const outputElement = document.getElementById("output");
+    const outputName = document.getElementById("output-name");
+    const outputModifiedDate = document.getElementById("output-modified-date");
+    const outputSize = document.getElementById("output-size");
+    const outputSheets = document.getElementById("output-sheets");
+
+    $formSubmit?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (
+        $fileInput &&
+        $fileInput.files &&
+        $fileInput.files.length > 0 &&
+        loadingElement &&
+        outputName &&
+        outputSheets &&
+        outputSize &&
+        outputElement &&
+        outputModifiedDate
+      ) {
+        try {
+          loadingElement.style.display = "block";
+          loadingElement.textContent = "Reading file...";
+          const file = $fileInput.files[0];
+          // Aquí puedes trabajar con el archivo seleccionado
+
+          /* const allSheets: any[][] = []; */
+          const sheetsName = await readSheetNames(file);
+          loadingElement.textContent = "Reading sheets...";
+
+          // Leer todas las hojas
+          const allSheets = await Promise.all(
+            sheetsName.map(async (sheetName) => {
+              const rows = await readXlsxFile(file, { sheet: sheetName });
+              return { sheetName, rows };
+            })
+          );
+
+          // Aqui renderizo los datos en una tabla
+          /* outputElement.textContent = JSON.stringify(allSheets, null, 2); */
+          outputElement.innerHTML = returnOutput(allSheets);
+
+          //Aqui se muestra la info del archivo
+          outputName.textContent = file.name;
+          const modifiedDate = new Date(file.lastModified);
+          outputModifiedDate.textContent = modifiedDate.toLocaleString();
+          outputSize.textContent = file.size.toString() + " MB";
+          /* for (const element of sheetsName) {
+          outputSheets.textContent += element
+        } */
+          outputSheets.textContent = JSON.stringify(sheetsName, null, 2);
+
+          // Ocultar el estado de carga
+          loadingElement.style.display = "none";
+        } catch (error) {
+          console.error("Error reading Excel file:", error);
+
+          // Mostrar error y ocultar loading
+          loadingElement.textContent =
+            "An error occurred while reading the file.";
+          setTimeout(() => {
+            loadingElement.style.display = "none";
+          }, 3000); // Ocultar el mensaje después de 3 segundos
+        }
+      } else {
+        console.error(
+          "No se ha seleccionado ningún archivo o el elemento no existe."
+        );
+      }
+    });
+  </script>
+</div>
