@@ -3,9 +3,10 @@
 ---
 
 <div id="container">
-  <header><h1 class="center-content">Excel Data Reader</h1></header>
+  <header><h1 class="center-content"><img src="https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg"/> Excel Data Reader</h1></header>
   <main class="container">
     <section class="container-info">
+      
       <section id="hero">
         <form id="form-excel-data-reader">
           <label for="file-data"
@@ -24,20 +25,14 @@
             <small> Only can submit '.xlsx' or '.xls' files </small>
           </label>
         </form>
-        
       </section>
       <section>
-        <label for="output-name"
-          >File name: <ins id="output-name"></ins></label
-        >
+        <label for="output-name">File name: <ins id="output-name"></ins></label>
         <label for="output-modified-date"
           >Last modified date: <ins id="output-modified-date"></ins></label
         >
-        <label for="output-size"
-          >File size: <ins id="output-size"></ins></label
-        >
-        <label for="output-sheets"
-          >Sheets: <ins id="output-sheets"></ins></label
+        <label for="output-size">File size: <ins id="output-size"></ins></label>
+        <label for="output-sheets">Sheets: <ins id="output-sheets"></ins></label
         >
       </section>
     </section>
@@ -80,6 +75,7 @@
     }
     .center-content {
       display: flex;
+      gap: 20px;
       justify-content: center;
       align-items: center;
       text-align: center;
@@ -98,14 +94,90 @@
       overflow-y: scroll;
       height: 100vh;
     }
+
+    .editable-cell {
+      /* position: relative;
+      cursor: pointer; */
+    }
+
+    .editable-cell input {
+      /* width: 100%; */
+      /* border: none; */
+      /* padding: 5px; */
+      /* position: absolute;
+      top: 0%;
+      left: 0%; */
+    }
+
+    .editable-cell span {
+      /* display: inline-block; */
+      /* width: 100%; */
+      /* padding: 5px; */
+      /* top: 0%;
+      left: 0%;
+      position: absolute; */
+    }
+
+    img{
+      max-width: 60px;
+      height: auto;
+    }
+
+     .table-row{
+      width: 72px; 
+      height: 20px;
+     } 
+    
+    
   </style>
 
   <script>
-    import type { string } from "astro:schema";
-import readXlsxFile, { readSheetNames } from "read-excel-file";
+    import type { number, string } from "astro:schema";
+    import readXlsxFile, { readSheetNames } from "read-excel-file";
 
+    function eventClickCell(){
+        document.querySelectorAll(".editable-cell").forEach((cell) => {
+        cell.addEventListener("click", () => {
+          const span = cell.querySelector("span");
+          const input = cell.querySelector("input");
+          console.log("click");
+          if (span && input) {
+            // Mostrar el input y ocultar el span
+            /* span.classList.toggle("hidden")
+            span.classList.toggle("show")
+            */
+            span.style.display = span.style.display == "none"?"":"none"
+            
+            /* input.classList.toggle("hidden")
+            input.classList.toggle("show") */
+            input.style.display = input.style.display == "none"?"":"none"
+            input.focus();
+
+            // Guardar los cambios al salir del input
+            input.addEventListener("blur", () => {
+              span.textContent = input.value;
+              /* span.classList.toggle("hidden")
+              span.classList.toggle("show") */
+              span.style.display = span.style.display == "none"?"":"none"
+              /* input.classList.toggle("hidden")
+              input.classList.toggle("show") */
+              input.style.display = input.style.display == "none"?"":"none"
+            });
+
+            // También puedes guardar los cambios al presionar Enter
+            input.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                input.blur(); // Llamar al blur para guardar y salir del input
+              }
+            });
+          }
+        });
+      });
+    }
+
+    
     function returnOutput(allSheets: {}[]) {
-      console.log(allSheets)
+      console.log(allSheets);
       /* OUTPUT 
     {sheetName: 'Paises', rows: Array(4)}
       rows: Array(4)
@@ -116,39 +188,53 @@ import readXlsxFile, { readSheetNames } from "read-excel-file";
     length:4 
 */
       let output = "";
+      const range = (size: number) => Array.from({ length: size }, (_, i) => i)
       for (const element of allSheets) {
         output += `<details class="table-data">
                     <summary>${element.sheetName}</summary>`;
-        output +=  `<table >
-                      <thead data-theme="light">
-                         <tr>`
-                        element.rows[0].forEach((elem:string) => {
-                          output+= `<th scope="col">${elem===null?` `:elem}</th>`
-                        });
-              output+=`  </tr>
-                      </thead>`
-               output+= `<tbody>`
-                element.rows.slice(1).forEach((row:[]) => {
-                  output += "<tr>";
-                  row.forEach((cell, index) => {
-                    // Agregar `scope="row"` a la primera celda de cada fila
-                    if (index === 0) {
-                      output += `<th scope="row">${cell===null?` `:cell}</th>`;
-                    } else {
-                      output += `<td>${cell===null?` `:cell}</td>`;
-                    }
-                  });
-                  output += "</tr>";
-                });
-        output += '</tbody></table></details>'
+        output += `<table data-theme="light" style="table-layout: fixed; width: 100%;">
+          <thead>
+             <tr style="width: 72px; height: 20px;"><th scope="col" style="width: 64px; height: 20px;"></th>`;
+              range(element.rows[0].length).map(i=>{
+          output += `<th scope="col" >${i}</th>`;
+        }).join('');
+        /* element.rows[0].forEach((elem: string) => {
+          output += `<th scope="col">${elem === null ? ` ` : elem}</th>`;
+        }); */
+        output += `  </tr>
+                      </thead>`;
+        output += `<tbody>`;
+          /* range(element.rows.length).map(i=>{ */
+           
+              
+            element.rows.forEach((row: [], rowIndex: number) => {
+              output += `<tr class="table-row">`;
+                output += `<td scope="row">${rowIndex+1}</td>`;
+                  
+                  row.forEach((cell, cellIndex) => {
+                
+                // Agregar `scope="row"` a la primera celda de cada fila
+                /* if (cellIndex === 0) {
+                  output += `<td scope="row">${cell === null ? ` ` : cell}</td>`;
+                } else { */
+                  output += `<td data-row="${rowIndex}" data-cell="${cellIndex}" class="editable-cell" style="position: relative;cursor: pointer;">
+                                        <span style="top: 0%;left: 0%;position: absolute; width: 100%; height: 100%; display: flex; align-items: center;">${cell === null ? ` ` : cell}</span>
+                                      <input value=${cell} class="" type="text" value="${cell === null ? "" : cell}"  style="display:none;border: 1px solid #fff ;position: absolute;top: 0%;left: 0%;"/>
+                                      </td>`;
+            /* } */
+          });
+            /* }); */
+          
+          output += "</tr>";
+        });
+        output += "</tbody></table></details>";
       }
+      
       return output;
     }
 
     const $formSubmit = document.getElementById("form-excel-data-reader");
-    const $fileInput = document.getElementById(
-      "file-data"
-    ) as HTMLInputElement | null;
+    const $fileInput = document.getElementById("file-data") as HTMLInputElement | null;
     const loadingElement = document.getElementById("loading");
     const outputElement = document.getElementById("output");
     const outputName = document.getElementById("output-name");
@@ -190,6 +276,7 @@ import readXlsxFile, { readSheetNames } from "read-excel-file";
           // Aqui renderizo los datos en una tabla
           /* outputElement.textContent = JSON.stringify(allSheets, null, 2); */
           outputElement.innerHTML = returnOutput(allSheets);
+          eventClickCell()
 
           //Aqui se muestra la info del archivo
           outputName.textContent = file.name;
@@ -208,16 +295,19 @@ import readXlsxFile, { readSheetNames } from "read-excel-file";
 
           // Mostrar error y ocultar loading
           loadingElement.textContent =
-            "An error occurred while reading the file.";
+            "An error occurred while reading the file."
           setTimeout(() => {
             loadingElement.style.display = "none";
           }, 3000); // Ocultar el mensaje después de 3 segundos
         }
       } else {
         console.error(
-          "No se ha seleccionado ningún archivo o el elemento no existe."
+          "An error occurred."
         );
       }
     });
+
+    // Obtener la tabla y agregar un evento de clic a las celdas
+    
   </script>
 </div>
